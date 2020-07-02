@@ -23,21 +23,6 @@ class Firebase {
         this.auth = app.auth();
         this.db = app.firestore()
     }
-
-    // login(email, password) {
-    //     return this.auth.signInWithEmailAndPassword(email, password)
-    // }
-
-    // logout() {
-    //     return this.auth.signOut()
-    // }
-
-    // async register(name, email, password) {
-    //     await this.auth.createUserWithEmailAndPassword(email, password)
-    //     return this.auth.currentUser.updateProfile({
-    //         displayName: name
-    //     })
-    // }
 }
 
 export default new Firebase();
