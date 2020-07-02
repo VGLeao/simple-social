@@ -1,17 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
-// import FormControlLabel from "@material-ui/core/FormControlLabel";
-// import Checkbox from "@material-ui/core/Checkbox";
 import Link from "@material-ui/core/Link";
 import Grid from "@material-ui/core/Grid";
-// import Box from "@material-ui/core/Box";
-
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import firebase from "../../firebase";
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -36,6 +34,35 @@ const useStyles = makeStyles((theme) => ({
 export default function Login() {
     const classes = useStyles();
 
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const history = useHistory();
+    
+    const signIn = (email, password) => {
+        firebase.auth
+            .signInWithEmailAndPassword(email, password)
+            .then(() => {
+                history.push("/home")
+            })
+            .catch(function (error) {
+                // Handle Errors here.
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                console.log(errorMessage);
+                switch(errorCode) {
+                    case "auth/wrong-password": 
+                        alert("Senha incorreta. Tente Novamente.");
+                        break;
+                    case "auth/user-not-found":
+                        alert("Usuário não encontrado. Se ainda não possui uma conta, clique em Registrar.")
+                        break;
+                    default: 
+                        break;
+                }
+            });
+    };
+
     return (
         <Container component="main" maxWidth="xs">
             <CssBaseline />
@@ -55,6 +82,8 @@ export default function Login() {
                         name="email"
                         autoComplete="email"
                         autoFocus
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                     />
                     <TextField
                         variant="outlined"
@@ -66,16 +95,17 @@ export default function Login() {
                         type="password"
                         id="password"
                         autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                     />
-                    {/* <FormControlLabel
-                        control={<Checkbox value="remember" color="primary" />}
-                        label="Lembrar-me"
-                    /> */}
                     <Button
                         fullWidth
                         variant="contained"
                         color="primary"
                         className={classes.submit}
+                        onClick={() =>
+                            signIn(email, password)
+                        }
                     >
                         {"Entrar"}
                     </Button>

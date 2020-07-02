@@ -42,21 +42,36 @@ const SignUp = () => {
         firebase.auth
             .createUserWithEmailAndPassword(email, password)
             .then((credentials) => {
-                if(credentials && credentials.user) {
-                    firebase.db.collection("users").doc(credentials.user.uid).set({
-                        firstName: firstName,
-                        lastName: lastName,
-                        email: email,
-                    });
+                if (credentials && credentials.user) {
+                    credentials.user.updateProfile({displayName: firstName});
+                    firebase.db
+                        .collection("users")
+                        .doc(credentials.user.uid)
+                        .set({
+                            firstName: firstName,
+                            lastName: lastName,
+                            email: email,
+                        });
                 }
             })
             .catch(function (error) {
                 // Handle Errors here.
                 var errorCode = error.code;
                 var errorMessage = error.message;
-                alert("Ops! Algo deu errado.")
-                console.log(errorCode);
                 console.log(errorMessage);
+                switch(errorCode) {
+                    case "auth/email-already-in-use": 
+                        alert("Email já registrado.");
+                        break;
+                    case "auth/invalid-email":
+                        alert("Email inválido.")
+                        break;
+                    case "auth/weak-password":
+                        alert("Senha fraca.")
+                        break;
+                    default: 
+                        break;
+                }
             });
     };
 
@@ -138,7 +153,7 @@ const SignUp = () => {
                     </Button>
                     <Grid container justify="flex-end">
                         <Grid item>
-                            <Link href="/login" variant="body2">
+                            <Link href="/" variant="body2">
                                 {"Já possui uma conta? Entrar"}
                             </Link>
                         </Grid>
