@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -32,18 +33,19 @@ const useStyles = makeStyles((theme) => ({
 
 const SignUp = () => {
     const classes = useStyles();
+    const history = useHistory();
 
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [firstName, setFirstName] = useState(String);
+    const [lastName, setLastName] = useState(String);
+    const [email, setEmail] = useState(String);
+    const [password, setPassword] = useState(String);
 
-    const register = (firstName, lastName, email, password) => {
+    const register = (firstName: string, lastName: string, email: string, password: string) => {
         firebase.auth
             .createUserWithEmailAndPassword(email, password)
             .then((credentials) => {
                 if (credentials && credentials.user) {
-                    credentials.user.updateProfile({displayName: firstName});
+                    credentials.user.updateProfile({ displayName: firstName });
                     firebase.db
                         .collection("users")
                         .doc(credentials.user.uid)
@@ -54,22 +56,47 @@ const SignUp = () => {
                         });
                 }
             })
+            .then(() => {
+                firebase.auth
+                    .signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        history.push("/home");
+                    })
+                    .catch(function (error) {
+                        // Handle Errors here.
+                        var errorCode = error.code;
+                        var errorMessage = error.message;
+                        console.log(errorMessage);
+                        switch (errorCode) {
+                            case "auth/wrong-password":
+                                alert("Senha incorreta. Tente Novamente.");
+                                break;
+                            case "auth/user-not-found":
+                                alert(
+                                    "Usuário não encontrado. Se ainda não possui uma conta, clique em Registrar."
+                                );
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+            })
             .catch(function (error) {
                 // Handle Errors here.
                 var errorCode = error.code;
                 var errorMessage = error.message;
                 console.log(errorMessage);
-                switch(errorCode) {
-                    case "auth/email-already-in-use": 
+                switch (errorCode) {
+                    case "auth/email-already-in-use":
                         alert("Email já registrado.");
                         break;
                     case "auth/invalid-email":
-                        alert("Email inválido.")
+                        alert("Email inválido.");
                         break;
                     case "auth/weak-password":
-                        alert("Senha fraca.")
+                        alert("Senha fraca.");
                         break;
-                    default: 
+                    default:
                         break;
                 }
             });

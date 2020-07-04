@@ -34,12 +34,13 @@ const useStyles = makeStyles((theme) => ({
 export default function Login() {
     const classes = useStyles();
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState(String);
+    const [password, setPassword] = useState(String);
 
     const history = useHistory();
     
-    const signIn = (email, password) => {
+    const signIn = (e) => {
+        e.preventDefault()
         firebase.auth
             .signInWithEmailAndPassword(email, password)
             .then(() => {
@@ -71,7 +72,7 @@ export default function Login() {
                 <Typography component="h1" variant="h5">
                     {"Entrar"}
                 </Typography>
-                <form className={classes.form} noValidate>
+                <form className={classes.form} onSubmit={signIn} noValidate>
                     <TextField
                         variant="outlined"
                         margin="normal"
@@ -103,18 +104,16 @@ export default function Login() {
                         variant="contained"
                         color="primary"
                         className={classes.submit}
-                        onClick={() =>
-                            signIn(email, password)
-                        }
+                        type="submit"
                     >
                         {"Entrar"}
                     </Button>
                     <Grid container>
-                        <Grid item xs>
+                        {/* <Grid item xs>
                             <Link href="#" variant="body2">
                                 {"Esqueci minha senha"}
                             </Link>
-                        </Grid>
+                        </Grid> */}
                         <Grid item>
                             <Link href="/signup" variant="body2">
                                 {"Não tem uma conta? Registrar"}
