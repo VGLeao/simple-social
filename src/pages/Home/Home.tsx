@@ -9,13 +9,16 @@ import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 
 const useStyles = makeStyles((theme) => ({
+    postRoot: {
+        textAlign: "left"
+    },
     postsContent: {
         textAlign: "left",
         marginBottom: "20px",
+        marginTop: "20px",
         borderBottom: "1px solid rgba(100, 100, 100, 0.3)",
     },
     postsOwner: {
-        textAlign: "left",
         fontWeight: "bold"
     },
     welcomeMessage: {
@@ -32,23 +35,29 @@ class Post {
     postContent: String;
     postOwner: String;
     postOwnerName: String;
+    postDate: Date;
 
-    constructor(postContent: String, postOwner: String, postOwnerName: String) {
+    constructor(postContent: String, postOwner: String, postOwnerName: String, postDate: Date) {
         this.postContent = postContent;
         this.postOwner = postOwner;
-        this.postOwnerName = postOwnerName
+        this.postOwnerName = postOwnerName;
+        this.postDate = postDate
     }
 }
 
 const PostFeed = ({ posts }) => {
     const classes = useStyles();
     return (
-        <div>
+        <div className={classes.postRoot}>
             {posts.map((post, i) => {
+                const postDate = new Date(post.postDate.seconds*1000)
                 return (
                     <div>
                         <Typography className={classes.postsOwner} variant="body1">
                             {post.postOwnerName}
+                        </Typography>
+                        <Typography variant="caption">
+                            em {postDate.toLocaleString()}
                         </Typography>
                         <Typography key={i} className={classes.postsContent} variant="body2">
                             {post.postContent}
@@ -79,7 +88,7 @@ const Home = () => {
                 history.push("/");
             }
         });
-    }, [currentUserName]);
+    }, [currentUserName, history]);
 
     useEffect(() => {
         firebase.db
@@ -88,12 +97,16 @@ const Home = () => {
             .then(function (querySnapshot) {
                 let postsCollection: Post[] = [];
                 querySnapshot.forEach(function (doc) {
-                    const { postOwner, postContent, postOwnerName } = doc.data();
-                    const post: Post = new Post(postContent, postOwner, postOwnerName);
+                    const { postOwner, postContent, postOwnerName, postDate } = doc.data();
+                    const post: Post = new Post(postContent, postOwner, postOwnerName, postDate);
                     // console.log(doc.data())
                     postsCollection.push(post);
+                    postsCollection.sort(function(a,b){
+                        // Turn your strings into dates, and then subtract them
+                        // to get a value that is either negative, positive, or zero.
+                        return b.postDate.valueOf() - a.postDate.valueOf();
+                      });
                     // doc.data() is never undefined for query doc snapshots
-                    // console.log(postsCollection);
                 });
                 setPosts(postsCollection);
             });
@@ -101,12 +114,14 @@ const Home = () => {
 
     const createPost = (postContent, userID, postOwnerName) => {
         if (postContent) {
+            let postDate = new Date()
             firebase.db
                 .collection("posts")
                 .add({
                     postContent: postContent,
                     postOwner: userID,
-                    postOwnerName: postOwnerName
+                    postOwnerName: postOwnerName,
+                    postDate: postDate
                 })
                 .then(() => {
                     setPostContent("");
@@ -114,7 +129,7 @@ const Home = () => {
                 .then(() => window.location.reload(false))
         }
     };
-
+    
     return (
         <div>
             <Navbar></Navbar>
